@@ -1,0 +1,61 @@
+ <h1>Upload File</h1>
+        {this.state.currentFile !== null ? (
+          <div>
+            <p>{this.state.currentFile.name}</p>
+            {this.state.isImage && (
+              <div>
+                <ReactCrop
+                  src={this.state.imgSrc}
+                  crop={this.state.crop}
+                  onComplete={this.handleOnCropComplete}
+                  onChange={this.handleOnCropChange}
+                />
+                <br />
+                <p>Click on image to crop</p>
+                <p>Preview Canvas Crop</p>
+                <canvas
+                  ref={this.imagePreviewCanvasRef}
+                  className="cropped-image"
+                />
+              </div>
+            )}
+            <br />
+            <button onClick={this.handleUploadClick} className="btn tg-btn m-1">
+              Upload to Server
+            </button>
+            <button
+              onClick={this.handleDownloadClick}
+              className="btn tg-btn m-1"
+              hidden={this.state.btnDisplay}
+            >
+              Download Cropped Image
+            </button>
+            <button
+              onClick={this.handleClearToDefault}
+              className="tg-btn-red m-1"
+            >
+              Clear
+            </button>
+          </div>
+        ) : (
+          <Dropzone
+            onDrop={this.handleOnDrop}
+            multiple={false}
+            maxSize={imageMaxSize}
+            disabled={this.state.disableDrop}
+          >
+            {({ getRootProps, getInputProps }) => (
+              <div {...getRootProps()}>
+                <input {...getInputProps()} />
+                Click Here{" "}
+                <span>
+                  <i className="fa fa-download icon-cog" aria-hidden="true" />{" "}
+                </span>
+                to Select File or Drag & Drop Here
+                <div>
+                  {this.state.disableDrop && <p>{this.state.isLoading}</p>}
+                </div>
+              </div>
+            )}
+          </Dropzone>
+        )}
