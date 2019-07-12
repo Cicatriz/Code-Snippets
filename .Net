@@ -1,0 +1,26 @@
+public List<FaqCat_View> SelectAll_CategoryAndQuestion()
+        {
+            Dictionary<int, FaqCat_View> result = new Dictionary<int, FaqCat_View>();
+            List<FaqCat_View> faqCatmodel = new List<FaqCat_View>();
+            List<FAQ_View> faqModel = new List<FAQ_View>();
+            _dataProvider.ExecuteCmd(
+                "dbo.FAQCategory_SelectCategoryAndQuestion",
+                inputParamMapper: null,
+                singleRecordMapper: delegate (IDataReader reader, short set)
+                {
+                    switch (set)
+                    {
+                        case 0:
+                            FaqCat_View item = FaqCat_View_Mapper(reader);
+                             faqCatmodel.Add(item);
+                            result.Add(item.Id, item);
+                            break;
+                        case 1:
+                            var fAQ = FAQ_View_Mapper(reader);
+                            result[fAQ.CategoryId].FAQ_s.Add(fAQ);
+                            break;
+                    }
+                });
+
+            return faqCatmodel;
+        }
