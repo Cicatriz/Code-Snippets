@@ -1,0 +1,57 @@
+public ActionResult<ItemResponse<List<FileOutput>>> UploadFiles(List<IFormFile> files)  // parameter name has to match name of form-data....
+        {
+            ActionResult result = null;
+            try
+            {
+                IFormFile file = HttpContext.Request.Form.Files[0];
+                var credentials = new BasicAWSCredentials(_config.AccessKey, _config.Secret);
+                s3Client = new AmazonS3Client(credentials, RegionEndpoint.USEast2);
+                var fileTransferUtility = new TransferUtility(s3Client);
+                int currentUserId = _authService.GetCurrentUserId();
+                List<FileOutput> list = null;
+                    if (file.Length > 0)
+                    {
+                        string filePath = Path.GetTempFileName();
+                        Guid guid = Guid.NewGuid();
+                        string keyName = "EndGame" + guid + "_" + file.FileName;
+                        using (var stream = new FileStream(filePath, FileMode.Create))
+                        {
+                            file.CopyTo(stream);
+                            fileTransferUtility.Upload(stream, _config.BucketName, keyName);
+                        }
+                    string url = _config.Domain + "/"+ _config.BucketName +"/" + keyName;
+                   
+                        FileOutput model = new FileOutput();
+                            model.Url = url;
+                        int Id = _fileUploadService.Insert(model);
+                       
+                        FileOutput output = new FileOutput()
+                        {
+                            Id = Id,
+                            Url = url
+                        };
+                        if (list == null)
+                        {
+                            list = new List<FileOutput>();
+                        }
+                        list.Add(output);
+                    }
+                if (list == null)
+                {
+                    result = NotFound404(new ErrorResponse("No files uploaded"));
+                }
+                else
+                {
+                    ItemResponse<List<FileOutput>> response = new ItemResponse<List<FileOutput>>()
+                    {
+                        Item = list
+                    };
+                    result = Ok200(response);
+                }
+            }
+            catch (Exception ex)
+            {
+                Logger.LogError(ex.ToString());
+                result = StatusCode(500, new ErrorResponse(ex.Message));
+            }
+            return result;
