@@ -1,0 +1,38 @@
+onFaqDragEnd = result => {
+    if (!result.destination) {
+      return;
+    }
+    const createNewFAQList = reorderFaq(
+      this.state.faqList,
+      result.source.index,
+      result.destination.index
+    );
+    this.setState(
+      {
+        faqList: createNewFAQList
+      },
+      () => this.updatingFaqsOrder(createNewFAQList)
+    );
+  };
+  updatingFaqsOrder = () => {
+    let newFaqOrderList = [...this.state.faqList];
+    let updatedFaqArray = newFaqOrderList.map((value, index) => {
+      value.displayOrder = index + 1;
+      return value;
+    });
+    let newFaqIndex = updatedFaqArray.map(value => ({
+      id: value.id,
+      displayOrder: value.displayOrder
+    }));
+    this.setState(
+      {
+        newfaqDisplayOrder: newFaqIndex
+      },
+      () =>
+        faqService
+          .updateFaqOrder(newFaqIndex)
+          .then(faqHelpers.onGlobalSuccess)
+          .catch(faqHelpers.onGlobalError)
+    );
+    return updatedFaqArray;
+  };
